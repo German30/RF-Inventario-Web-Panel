@@ -1,0 +1,42 @@
+# =====================================================================
+# RF Inventario - Panel API
+#
+#   docker compose up -d --build     levantar
+#   docker compose logs -f api       ver el arranque
+#   docker compose down              apagar
+#
+# Aqui NO se levanta MySQL: la base `rf_inventario` es la misma que escribe
+# la app Android y vive en el MySQL del host (instalado en Windows o en el
+# docker-compose de RF-Inventario). Duplicarla seria tener dos verdades.
+#
+# Por defecto se conecta al MySQL del HOST via host.docker.internal:3306.
+# =====================================================================
+
+services:
+  api:
+    build:
+      context: .
+    image: rf-inventario-panel-api
+    container_name: rf-inventario-panel-api
+    restart: unless-stopped
+
+    environment:
+      SERVER_PORT: 8082
+      DB_HOST: ${DB_HOST:-host.docker.internal}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-rf_inventario}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root123}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:3000}
+      JWT_SECRETO: ${JWT_SECRETO:-rf-inventario-panel-secreto-de-desarrollo-cambialo-en-produccion}
+      JWT_HORAS: ${JWT_HORAS:-12}
+      ADMIN_SEED_CODIGO: ${ADMIN_SEED_CODIGO:-9001}
+      ADMIN_SEED_PIN: ${ADMIN_SEED_PIN:-4321}
+      ADMIN_SEED_NOMBRE: ${ADMIN_SEED_NOMBRE:-Supervisor Demo}
+
+    ports:
+      - "${API_PORT:-8082}:8082"
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
