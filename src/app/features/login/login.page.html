@@ -1,0 +1,62 @@
+<div class="login">
+  <form class="login__sheet sheet" (submit)="$event.preventDefault(); enviar()">
+    <div class="login__brand">
+      <span class="login__mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 8 12 3 3 8l9 5 9-5Z" />
+          <path d="M3 8v8l9 5 9-5V8" />
+          <path d="M12 13v8" />
+        </svg>
+      </span>
+      <div>
+        <h1 class="login__wordmark">RF Inventario</h1>
+        <p class="login__sub">Panel de supervisores</p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="codigo">Código de operario</label>
+      <input
+        id="codigo"
+        class="field__control num"
+        type="text"
+        inputmode="numeric"
+        autocomplete="username"
+        placeholder="0000"
+        [value]="codigo()"
+        (input)="onCodigo($any($event.target).value)"
+        autofocus
+      />
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="pin">PIN</label>
+      <input
+        id="pin"
+        class="field__control num"
+        type="password"
+        inputmode="numeric"
+        autocomplete="current-password"
+        placeholder="••••"
+        [value]="pin()"
+        (input)="onPin($any($event.target).value)"
+      />
+    </div>
+
+    @if (error()) {
+      <p class="login__error">{{ error() }}</p>
+    }
+
+    <button type="submit" class="btn btn--primary login__submit" [disabled]="!puedeEnviar">
+      @if (cargando()) {
+        Verificando…
+      } @else {
+        Ingresar
+      }
+    </button>
+
+    <p class="login__nota">
+      Solo cuentas de supervisor. Los operarios de piso usan la app.
+    </p>
+  </form>
+</div>

@@ -1,0 +1,114 @@
+<app-modal [titulo]="esAlta() ? 'Alta de producto' : 'Editar producto'" (cerrar)="cerrar.emit()">
+  @if (conflicto(); as actual) {
+    <div class="conflicto">
+      <p class="conflicto__titulo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+          <path d="M12 9v4M12 17h.01" />
+        </svg>
+        Conflicto de edición
+      </p>
+      <p class="conflicto__texto">
+        Otro cambio se guardó mientras editabas. El servidor tiene ahora:
+        <strong>{{ actual.nombre }}</strong> · cantidad <strong>{{ actual.cantidad }}</strong> ·
+        ubicación <strong>{{ actual.ubicacion || '—' }}</strong>.
+      </p>
+      <button type="button" class="btn btn--primary" (click)="usarValoresDelServidor()">
+        Usar los valores del servidor
+      </button>
+    </div>
+  } @else {
+    <form class="producto-form" (submit)="$event.preventDefault(); guardar()">
+      <div class="field">
+        <label class="field__label" for="nombre">Nombre</label>
+        <input
+          id="nombre"
+          class="field__control"
+          type="text"
+          [value]="nombre()"
+          (input)="nombre.set($any($event.target).value)"
+          autofocus
+        />
+      </div>
+
+      <div class="producto-form__fila">
+        <div class="field">
+          <label class="field__label" for="sku">SKU</label>
+          <input
+            id="sku"
+            class="field__control num"
+            type="text"
+            [value]="sku()"
+            (input)="sku.set($any($event.target).value)"
+          />
+        </div>
+        <div class="field">
+          <label class="field__label" for="cantidad">Cantidad</label>
+          <input
+            id="cantidad"
+            class="field__control num"
+            type="text"
+            inputmode="numeric"
+            [value]="cantidad()"
+            (input)="onCantidad($any($event.target).value)"
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="ubicacion">Ubicación principal</label>
+        <input
+          id="ubicacion"
+          class="field__control"
+          type="text"
+          placeholder="Ej. A-03"
+          [value]="ubicacion()"
+          (input)="ubicacion.set($any($event.target).value)"
+        />
+      </div>
+
+      <div class="producto-form__fila">
+        <div class="field">
+          <label class="field__label" for="categoria">Categoría</label>
+          <input id="categoria" class="field__control" type="text" [value]="categoria()" (input)="categoria.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="unidad">Unidad</label>
+          <input id="unidad" class="field__control" type="text" placeholder="UN, KG, CJ…" [value]="unidad()" (input)="unidad.set($any($event.target).value)" />
+        </div>
+      </div>
+
+      <div class="producto-form__fila">
+        <div class="field">
+          <label class="field__label" for="minimo">Stock mínimo</label>
+          <input id="minimo" class="field__control num" type="text" inputmode="numeric" [value]="stockMinimo()" (input)="stockMinimo.set($any($event.target).value)" />
+        </div>
+        <div class="field">
+          <label class="field__label" for="costo">Costo unitario</label>
+          <input id="costo" class="field__control num" type="text" inputmode="decimal" [value]="costo()" (input)="costo.set($any($event.target).value)" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="codigos">Códigos alternativos (EAN del proveedor, separados por coma)</label>
+        <input id="codigos" class="field__control num" type="text" [value]="codigos()" (input)="codigos.set($any($event.target).value)" />
+      </div>
+
+      <label class="field__label">
+        <input type="checkbox" [checked]="controlaLote()" (change)="controlaLote.set($any($event.target).checked)" />
+        Control por lote y vencimiento (cada entrada exige lote)
+      </label>
+
+      @if (error()) {
+        <p class="field__error">{{ error() }}</p>
+      }
+
+      <div class="producto-form__acciones">
+        <button type="button" class="btn btn--ghost" (click)="cerrar.emit()">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="!esValido || guardando()">
+          {{ guardando() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  }
+</app-modal>

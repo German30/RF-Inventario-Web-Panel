@@ -1,0 +1,16 @@
+<app-modal [titulo]="titulo()" ancho="angosto" (cerrar)="cancelar.emit()">
+  <p style="margin: 0 0 var(--space-4); font-size: 14px; line-height: 1.5;">{{ mensaje() }}</p>
+  <div style="display: flex; justify-content: flex-end; gap: var(--space-3);">
+    <button type="button" class="btn btn--ghost" (click)="cancelar.emit()">Cancelar</button>
+    <button
+      type="button"
+      class="btn"
+      [class.btn--danger]="peligroso()"
+      [class.btn--primary]="!peligroso()"
+      [disabled]="enProceso()"
+      (click)="confirmar.emit()"
+    >
+      {{ enProceso() ? 'Procesando…' : textoConfirmar() }}
+    </button>
+  </div>
+</app-modal>

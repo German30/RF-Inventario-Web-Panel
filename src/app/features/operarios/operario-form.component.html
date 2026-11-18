@@ -1,0 +1,78 @@
+<app-modal [titulo]="esAlta() ? 'Alta de operario' : 'Editar operario'" (cerrar)="cerrar.emit()">
+  <form class="operario-form" (submit)="$event.preventDefault(); guardar()">
+    @if (esAlta()) {
+      <div class="operario-form__fila">
+        <div class="field">
+          <label class="field__label" for="codigo">Código</label>
+          <input
+            id="codigo"
+            class="field__control num"
+            type="text"
+            inputmode="numeric"
+            [value]="codigo()"
+            (input)="onCodigo($any($event.target).value)"
+            autofocus
+          />
+        </div>
+        <div class="field">
+          <label class="field__label" for="pin">PIN inicial</label>
+          <input
+            id="pin"
+            class="field__control num"
+            type="text"
+            inputmode="numeric"
+            [value]="pin()"
+            (input)="onPin($any($event.target).value)"
+          />
+        </div>
+      </div>
+    } @else {
+      <p class="operario-form__codigo-fijo num">Código {{ inicial()!.codigo }}</p>
+    }
+
+    <div class="field">
+      <label class="field__label" for="nombre">Nombre</label>
+      <input
+        id="nombre"
+        class="field__control"
+        type="text"
+        [value]="nombre()"
+        (input)="nombre.set($any($event.target).value)"
+      />
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="rol">Rol</label>
+      <select id="rol" class="field__control" [value]="rol()" (change)="rol.set($any($event.target).value)">
+        <option value="OPERARIO">Operario (solo app)</option>
+        <option value="SUPERVISOR">Supervisor (app + panel)</option>
+      </select>
+    </div>
+
+    @if (!esAlta()) {
+      <label class="operario-form__activo">
+        <input
+          type="checkbox"
+          [checked]="activo()"
+          [disabled]="esUnoMismo()"
+          (change)="activo.set($any($event.target).checked)"
+        />
+        Cuenta activa
+      </label>
+      @if (esUnoMismo()) {
+        <p class="operario-form__nota">No podés desactivar tu propia cuenta.</p>
+      }
+    }
+
+    @if (error()) {
+      <p class="field__error">{{ error() }}</p>
+    }
+
+    <div class="operario-form__acciones">
+      <button type="button" class="btn btn--ghost" (click)="cerrar.emit()">Cancelar</button>
+      <button type="submit" class="btn btn--primary" [disabled]="!esValido || guardando()">
+        {{ guardando() ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </div>
+  </form>
+</app-modal>

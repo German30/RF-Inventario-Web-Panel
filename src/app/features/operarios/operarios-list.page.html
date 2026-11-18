@@ -1,0 +1,69 @@
+<header class="page-header">
+  <div>
+    <h1 class="page-header__titulo">Operarios</h1>
+    <p class="page-header__sub">Cuentas de acceso a la app y al panel.</p>
+  </div>
+  <button type="button" class="btn btn--primary" (click)="abrirAlta()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+    Nuevo operario
+  </button>
+</header>
+
+@if (cargando()) {
+  <p class="table-estado">Cargando operarios…</p>
+} @else if (operarios().length === 0) {
+  <p class="table-estado">No hay operarios cargados.</p>
+} @else {
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th class="data-table__actions">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (o of operarios(); track o.codigo) {
+          <tr [class.data-table__row--inactive]="!o.activo">
+            <td class="data-table__mono num">{{ o.codigo }}</td>
+            <td>
+              {{ o.nombre }}
+              @if (o.codigo === auth.codigoOperario()) {
+                <span class="vos">(vos)</span>
+              }
+            </td>
+            <td><app-stamp [texto]="rolEtiqueta(o.rol)" [tono]="rolTono(o.rol)" /></td>
+            <td>
+              @if (o.activo) {
+                <app-stamp texto="Activo" tono="ok" />
+              } @else {
+                <app-stamp texto="Baja" tono="danger" />
+              }
+            </td>
+            <td class="data-table__actions">
+              <button type="button" class="btn btn--ghost data-table__action" (click)="abrirEdicion(o)">Editar</button>
+              <button
+                type="button"
+                class="btn btn--ghost data-table__action"
+                (click)="reseteandoPinDe.set(o)"
+              >Resetear PIN</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (mostrarFormulario()) {
+  <app-operario-form [inicial]="editando()" (cerrar)="mostrarFormulario.set(false)" (guardado)="onGuardado($event)" />
+}
+
+@if (reseteandoPinDe(); as o) {
+  <app-pin-reset [operario]="o" (cerrar)="reseteandoPinDe.set(null)" (reseteado)="onPinReseteado()" />
+}

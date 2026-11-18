@@ -1,0 +1,107 @@
+<header class="page-header">
+  <div>
+    <h1 class="page-header__titulo">Inventario</h1>
+    <p class="page-header__sub">Catálogo de productos y su cantidad actual.</p>
+  </div>
+  <button type="button" class="btn btn--primary" (click)="abrirAlta()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+    Nuevo producto
+  </button>
+</header>
+
+<div class="toolbar">
+  <div class="field field--icon">
+    <label class="field__label" for="busqueda">Buscar</label>
+    <span class="field__icon" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7" />
+        <path d="m21 21-4.35-4.35" />
+      </svg>
+    </span>
+    <input
+      id="busqueda"
+      class="field__control"
+      type="text"
+      placeholder="Nombre o SKU…"
+      [value]="busqueda()"
+      (input)="onBusqueda($any($event.target).value)"
+    />
+  </div>
+</div>
+
+@if (cargando()) {
+  <p class="table-estado">Cargando inventario…</p>
+} @else if (productos().length === 0) {
+  <p class="table-estado">
+    @if (busqueda()) {
+      No hay productos que coincidan con "{{ busqueda() }}".
+    } @else {
+      No hay productos cargados todavía. Dalos de alta con "Nuevo producto".
+    }
+  </p>
+} @else {
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Producto</th>
+          <th class="data-table__num">Cantidad</th>
+          <th class="data-table__num">Mínimo</th>
+          <th>Ubicación</th>
+          <th class="data-table__actions">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of productos(); track p.id) {
+          <tr>
+            <td class="data-table__mono num">{{ p.sku }}</td>
+            <td>{{ p.nombre }}</td>
+            <td class="data-table__num num">
+              {{ p.cantidad }} {{ p.unidad }}
+              @if (p.bajoMinimo) { <app-stamp texto="Bajo mínimo" tono="danger" /> }
+            </td>
+            <td class="data-table__num num data-table__muted">{{ p.stockMinimo || '—' }}</td>
+            <td class="data-table__muted">{{ p.ubicacion || '—' }}</td>
+            <td class="data-table__actions">
+              <button type="button" class="btn btn--ghost data-table__action" (click)="abrirAjuste(p)">Stock</button>
+              <button type="button" class="btn btn--ghost data-table__action" (click)="abrirHistorial(p)">Historial</button>
+              <button type="button" class="btn btn--ghost data-table__action" (click)="abrirEdicion(p)">Editar</button>
+              <button
+                type="button"
+                class="btn btn--ghost data-table__action data-table__action--danger"
+                (click)="confirmarEliminar(p)"
+              >Eliminar</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (mostrarFormulario()) {
+  <app-producto-form [inicial]="editando()" (cerrar)="cerrarFormulario()" (guardado)="onGuardado($event)" />
+}
+
+@if (ajustando(); as p) {
+  <app-stock-adjust [producto]="p" (cerrar)="ajustando.set(null)" (ajustado)="onAjustado($event)" />
+}
+
+@if (verHistorialDe(); as p) {
+  <app-historial-drawer [producto]="p" (cerrar)="verHistorialDe.set(null)" />
+}
+
+@if (borrando(); as p) {
+  <app-confirm-dialog
+    titulo="Eliminar producto"
+    [mensaje]="'¿Eliminar ' + p.nombre + ' (' + p.sku + ')? Queda registrado en el historial, pero desaparece del listado.'"
+    textoConfirmar="Eliminar"
+    [peligroso]="true"
+    [enProceso]="eliminando()"
+    (cancelar)="borrando.set(null)"
+    (confirmar)="eliminar()"
+  />
+}

@@ -1,0 +1,47 @@
+<app-modal titulo="Ajustar stock" ancho="angosto" (cerrar)="cerrar.emit()">
+  <div class="ajuste">
+    <p class="ajuste__producto">
+      <strong>{{ producto().nombre }}</strong>
+      <span class="ajuste__sku num">{{ producto().sku }}</span>
+    </p>
+
+    <div class="ajuste__cantidad">
+      <span class="ajuste__actual">Actual: <span class="num">{{ producto().cantidad }}</span></span>
+
+      <div class="ajuste__control">
+        <button type="button" class="btn btn--ghost ajuste__paso" (click)="sumar(-10)">−10</button>
+        <button type="button" class="btn btn--ghost ajuste__paso" (click)="sumar(-1)">−1</button>
+        <input
+          class="field__control ajuste__input num"
+          type="text"
+          inputmode="numeric"
+          [value]="delta()"
+          (input)="onDelta($any($event.target).value)"
+          autofocus
+        />
+        <button type="button" class="btn btn--ghost ajuste__paso" (click)="sumar(1)">+1</button>
+        <button type="button" class="btn btn--ghost ajuste__paso" (click)="sumar(10)">+10</button>
+      </div>
+
+      <p class="ajuste__resultado num" [class.ajuste__resultado--negativo]="resultado < 0">
+        Queda en: {{ resultado }}
+      </p>
+    </div>
+
+    @if (error()) {
+      <p class="field__error">{{ error() }}</p>
+    }
+
+    <div class="ajuste__acciones">
+      <button type="button" class="btn btn--ghost" (click)="cerrar.emit()">Cancelar</button>
+      <button
+        type="button"
+        class="btn btn--primary"
+        [disabled]="delta() === 0 || resultado < 0 || guardando()"
+        (click)="confirmar()"
+      >
+        {{ guardando() ? 'Guardando…' : 'Confirmar ajuste' }}
+      </button>
+    </div>
+  </div>
+</app-modal>

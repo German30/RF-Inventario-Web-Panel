@@ -1,0 +1,90 @@
+<header class="page-header">
+  <div>
+    <h1 class="page-header__titulo">Resumen</h1>
+    <p class="page-header__sub">Estado del depósito en tiempo real y alertas que requieren acción.</p>
+  </div>
+  <div class="reportes">
+    <button type="button" class="btn btn--ghost" (click)="descargar('inventario')">CSV inventario</button>
+    <button type="button" class="btn btn--ghost" (click)="descargar('existencias')">CSV por ubicación</button>
+    <button type="button" class="btn btn--ghost" (click)="descargar('movimientos')">CSV movimientos</button>
+  </div>
+</header>
+
+@if (datos(); as d) {
+  <section class="kpis">
+    <a class="kpi sheet" routerLink="/inventario">
+      <span class="kpi__valor num">{{ d.productos }}</span><span class="kpi__label">Productos</span>
+    </a>
+    <div class="kpi sheet"><span class="kpi__valor num">{{ d.unidades }}</span><span class="kpi__label">Unidades</span></div>
+    <div class="kpi sheet">
+      <span class="kpi__valor num">{{ d.valorInventario | currency: 'ARS' : 'symbol-narrow' : '1.0-0' }}</span>
+      <span class="kpi__label">Valor del inventario (a costo)</span>
+    </div>
+    <div class="kpi sheet" [class.kpi--alerta]="d.bajoMinimo > 0">
+      <span class="kpi__valor num">{{ d.bajoMinimo }}</span><span class="kpi__label">Bajo mínimo</span>
+    </div>
+    <div class="kpi sheet" [class.kpi--alerta]="d.sinStock > 0">
+      <span class="kpi__valor num">{{ d.sinStock }}</span><span class="kpi__label">Sin stock</span>
+    </div>
+    <div class="kpi sheet"><span class="kpi__valor num">{{ d.movimientosHoy }}</span><span class="kpi__label">Movimientos hoy</span></div>
+    <a class="kpi sheet" routerLink="/pedidos">
+      <span class="kpi__valor num">{{ d.recepcionesPendientes }}</span><span class="kpi__label">Recepciones pendientes</span>
+    </a>
+    <a class="kpi sheet" routerLink="/pedidos">
+      <span class="kpi__valor num">{{ d.pickingsPendientes }}</span><span class="kpi__label">Pickings pendientes</span>
+    </a>
+    <a class="kpi sheet" routerLink="/conteos">
+      <span class="kpi__valor num">{{ d.conteosAbiertos }}</span><span class="kpi__label">Conteos por aprobar</span>
+    </a>
+  </section>
+
+  <section class="alertas">
+    <div>
+      <h2>Bajo mínimo</h2>
+      @if (d.alertasBajoMinimo.length === 0) {
+        <p class="table-estado">Ningún producto por debajo de su mínimo.</p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>SKU</th><th>Producto</th><th class="data-table__num">Stock</th><th class="data-table__num">Mínimo</th></tr></thead>
+            <tbody>
+              @for (p of d.alertasBajoMinimo; track p.id) {
+                <tr>
+                  <td class="data-table__mono num">{{ p.sku }}</td>
+                  <td>{{ p.nombre }}</td>
+                  <td class="data-table__num num">{{ p.cantidad }}</td>
+                  <td class="data-table__num num">{{ p.stockMinimo }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+    <div>
+      <h2>Vencen en 30 días</h2>
+      @if (d.proximosAVencer.length === 0) {
+        <p class="table-estado">No hay lotes por vencer.</p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Producto</th><th>Lote</th><th>Ubicación</th><th>Vence</th><th class="data-table__num">Cant.</th></tr></thead>
+            <tbody>
+              @for (e of d.proximosAVencer; track e.productoId + e.ubicacion + e.lote) {
+                <tr>
+                  <td>{{ e.nombre }} <span class="data-table__muted num">{{ e.sku }}</span></td>
+                  <td class="num">{{ e.lote || '—' }}</td>
+                  <td>{{ e.ubicacion }}</td>
+                  <td><app-stamp [texto]="e.vence ?? '—'" tono="warn" /></td>
+                  <td class="data-table__num num">{{ e.cantidad }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+} @else {
+  <p class="table-estado">Cargando…</p>
+}

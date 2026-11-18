@@ -1,0 +1,65 @@
+<div class="shell">
+  <header class="shell__header">
+    <div class="shell__brand">
+      <span class="shell__mark" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 8 12 3 3 8l9 5 9-5Z" />
+          <path d="M3 8v8l9 5 9-5V8" />
+          <path d="M12 13v8" />
+        </svg>
+      </span>
+      <span class="shell__wordmark">RF Inventario</span>
+    </div>
+
+    <div class="shell__signoff">
+      <div class="shell__signoff-text">
+        <span class="shell__signoff-nombre">{{ auth.nombreOperario() }}</span>
+        <span class="shell__signoff-codigo num">Código {{ auth.codigoOperario() }}</span>
+      </div>
+      <button type="button" class="btn btn--ghost" (click)="salir()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div class="shell__body">
+    <nav class="shell__nav" aria-label="Secciones">
+      <a routerLink="/resumen" routerLinkActive="is-active" class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18" /><path d="m7 15 4-4 3 3 5-6" /></svg>
+        Resumen
+      </a>
+      <a routerLink="/inventario" routerLinkActive="is-active" class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 8 12 3 3 8l9 5 9-5Z" />
+          <path d="M3 8v8l9 5 9-5V8" />
+        </svg>
+        Inventario
+      </a>
+      <a routerLink="/pedidos" routerLinkActive="is-active" class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13l5 5v5h-3" /><path d="M3 7v10h2" /><circle cx="7.5" cy="17.5" r="2" /><circle cx="17.5" cy="17.5" r="2" /></svg>
+        Pedidos
+      </a>
+      <a routerLink="/conteos" routerLinkActive="is-active" class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></svg>
+        Conteos
+      </a>
+      <a routerLink="/ubicaciones" routerLinkActive="is-active" class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+        Ubicaciones
+      </a>
+      <a routerLink="/operarios" routerLinkActive="is-active" class="nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+          <circle cx="10" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        Operarios
+      </a>
+    </nav>
+
+    <main class="shell__content">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+<app-toast />

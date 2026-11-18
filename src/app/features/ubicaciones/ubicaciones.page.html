@@ -1,0 +1,96 @@
+<header class="page-header">
+  <div>
+    <h1 class="page-header__titulo">Ubicaciones</h1>
+    <p class="page-header__sub">Estantes y zonas del depósito. El código es lo que se imprime en la etiqueta y escanea el operario.</p>
+  </div>
+  <button type="button" class="btn btn--primary" (click)="abrir(null)">Nueva ubicación</button>
+</header>
+
+<div class="toolbar">
+  <div class="field">
+    <label class="field__label" for="filtro">Filtrar</label>
+    <input id="filtro" class="field__control" type="text" placeholder="Código o zona…"
+           [value]="filtro()" (input)="filtro.set($any($event.target).value)" />
+  </div>
+</div>
+
+@if (visibles().length === 0) {
+  <p class="table-estado">No hay ubicaciones.</p>
+} @else {
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Código</th><th>Descripción</th><th>Zona</th><th>Estado</th><th class="data-table__actions">Acciones</th></tr>
+      </thead>
+      <tbody>
+        @for (u of visibles(); track u.id) {
+          <tr>
+            <td class="data-table__mono num">{{ u.codigo }}</td>
+            <td>{{ u.descripcion || '—' }}</td>
+            <td class="data-table__muted">{{ u.zona || '—' }}</td>
+            <td><app-stamp [texto]="u.activa ? 'Activa' : 'Inactiva'" [tono]="u.activa ? 'ok' : 'neutral'" /></td>
+            <td class="data-table__actions">
+              <button type="button" class="btn btn--ghost data-table__action" (click)="verContenido(u)">Contenido</button>
+              <button type="button" class="btn btn--ghost data-table__action" (click)="abrir(u)">Editar</button>
+              <button type="button" class="btn btn--ghost data-table__action" (click)="alternarActiva(u)">
+                {{ u.activa ? 'Desactivar' : 'Activar' }}
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (editando(); as u) {
+  <app-modal [titulo]="u.id ? 'Editar ' + u.codigo : 'Nueva ubicación'" ancho="angosto" (cerrar)="editando.set(null)">
+    <form class="form" (submit)="$event.preventDefault(); guardar()">
+      <div class="field">
+        <label class="field__label" for="codigo">Código</label>
+        <input id="codigo" class="field__control num" type="text" placeholder="A-01-03" [disabled]="!!u.id"
+               [value]="codigo()" (input)="codigo.set($any($event.target).value)" autofocus />
+      </div>
+      <div class="field">
+        <label class="field__label" for="desc">Descripción</label>
+        <input id="desc" class="field__control" type="text" placeholder="Pasillo A, rack 1, nivel 3"
+               [value]="descripcion()" (input)="descripcion.set($any($event.target).value)" />
+      </div>
+      <div class="field">
+        <label class="field__label" for="zona">Zona</label>
+        <input id="zona" class="field__control" type="text" placeholder="Secos, frío, alto valor…"
+               [value]="zona()" (input)="zona.set($any($event.target).value)" />
+      </div>
+      @if (error()) { <p class="field__error">{{ error() }}</p> }
+      <div class="acciones">
+        <button type="button" class="btn btn--ghost" (click)="editando.set(null)">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="!codigo().trim()">Guardar</button>
+      </div>
+    </form>
+  </app-modal>
+}
+
+@if (viendo(); as u) {
+  <app-modal [titulo]="'Contenido de ' + u.codigo" (cerrar)="viendo.set(null)">
+    @if (contenido() === null) {
+      <p class="table-estado">Cargando…</p>
+    } @else if (contenido()!.length === 0) {
+      <p class="table-estado">Vacía.</p>
+    } @else {
+      <table class="data-table">
+        <thead><tr><th>SKU</th><th>Producto</th><th>Lote</th><th>Vence</th><th class="data-table__num">Cant.</th></tr></thead>
+        <tbody>
+          @for (e of contenido(); track e.productoId + e.lote) {
+            <tr>
+              <td class="data-table__mono num">{{ e.sku }}</td>
+              <td>{{ e.nombre }}</td>
+              <td class="num">{{ e.lote || '—' }}</td>
+              <td class="num">{{ e.vence || '—' }}</td>
+              <td class="data-table__num num">{{ e.cantidad }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </app-modal>
+}

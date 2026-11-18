@@ -1,0 +1,43 @@
+<div class="drawer-backdrop" (click)="cerrar.emit()">
+  <aside class="drawer" (click)="$event.stopPropagation()" aria-label="Historial del producto">
+    <header class="drawer__header">
+      <div>
+        <h2 class="drawer__titulo">Historial</h2>
+        <p class="drawer__sub">{{ producto().nombre }} · <span class="num">{{ producto().sku }}</span></p>
+      </div>
+      <button type="button" class="icon-btn" (click)="cerrar.emit()" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </header>
+
+    <div class="drawer__body">
+      @if (cargando()) {
+        <p class="drawer__vacio">Cargando…</p>
+      } @else if (error()) {
+        <p class="drawer__vacio drawer__vacio--error">{{ error() }}</p>
+      } @else if (movimientos().length === 0) {
+        <p class="drawer__vacio">Sin movimientos todavía.</p>
+      } @else {
+        <ul class="historial">
+          @for (m of movimientos(); track m.id) {
+            <li class="historial__item">
+              <div class="historial__fila">
+                <app-stamp [texto]="etiqueta(m.accion)" [tono]="tono(m.accion)" />
+                <span class="historial__fecha num">{{ fecha(m.creadoEn) }}</span>
+              </div>
+              <div class="historial__fila historial__fila--detalle">
+                <span class="historial__delta num" [class.historial__delta--negativo]="m.delta < 0">
+                  {{ m.delta > 0 ? '+' : '' }}{{ m.delta }}
+                </span>
+                <span class="historial__resultado num">→ {{ m.cantidadDespues }}</span>
+                <span class="historial__operario">{{ m.operadorNombre }} ({{ m.operadorCodigo }})</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </aside>
+</div>

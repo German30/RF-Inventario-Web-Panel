@@ -1,0 +1,126 @@
+<header class="page-header">
+  <div>
+    <h1 class="page-header__titulo">Pedidos</h1>
+    <p class="page-header__sub">Compras a recibir y ventas a preparar. Las terminales los procesan escaneando.</p>
+  </div>
+  <button type="button" class="btn btn--primary" (click)="nuevo()">Nuevo pedido</button>
+</header>
+
+<div class="toolbar tabs">
+  <button type="button" class="btn" [class.btn--primary]="tipo() === null" [class.btn--ghost]="tipo() !== null" (click)="filtrar(null)">Todos</button>
+  <button type="button" class="btn" [class.btn--primary]="tipo() === 'COMPRA'" [class.btn--ghost]="tipo() !== 'COMPRA'" (click)="filtrar('COMPRA')">Recepción</button>
+  <button type="button" class="btn" [class.btn--primary]="tipo() === 'VENTA'" [class.btn--ghost]="tipo() !== 'VENTA'" (click)="filtrar('VENTA')">Picking</button>
+  <label class="field__label">
+    <input type="checkbox" [checked]="!abiertos()" (change)="filtrar(tipo(), !$any($event.target).checked)" />
+    Ver también cerrados
+  </label>
+</div>
+
+@if (pedidos().length === 0) {
+  <p class="table-estado">No hay pedidos.</p>
+} @else {
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Número</th><th>Tipo</th><th>Contraparte</th><th>Estado</th><th>Avance</th><th>Creado</th><th class="data-table__actions"></th></tr>
+      </thead>
+      <tbody>
+        @for (p of pedidos(); track p.id) {
+          <tr>
+            <td class="data-table__mono num">{{ p.numero }}</td>
+            <td><app-stamp [texto]="p.tipo === 'COMPRA' ? 'Recepción' : 'Picking'" [tono]="p.tipo === 'COMPRA' ? 'ok' : 'role'" /></td>
+            <td>{{ p.contraparte || '—' }}</td>
+            <td><app-stamp [texto]="p.estado.replace('_', ' ')" [tono]="tonoEstado(p.estado)" /></td>
+            <td>
+              <div class="progreso" [title]="p.unidadesHechas + ' / ' + p.unidadesPedidas"><span [style.width.%]="porcentaje(p)"></span></div>
+              <span class="data-table__muted num">{{ p.unidadesHechas }} / {{ p.unidadesPedidas }}</span>
+            </td>
+            <td class="data-table__muted num">{{ fecha(p.creadoEn) }}</td>
+            <td class="data-table__actions">
+              <button type="button" class="btn btn--ghost data-table__action" (click)="abrirDetalle(p)">Detalle</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (detalle(); as d) {
+  <app-modal [titulo]="'Pedido ' + d.numero" (cerrar)="detalle.set(null)">
+    <p class="data-table__muted">{{ d.contraparte }} · {{ d.nota }}</p>
+    <table class="data-table">
+      <thead><tr><th>SKU</th><th>Producto</th><th class="data-table__num">Pedido</th><th class="data-table__num">Hecho</th><th>Sacar de (FEFO)</th></tr></thead>
+      <tbody>
+        @for (l of d.lineas; track l.id) {
+          <tr>
+            <td class="data-table__mono num">{{ l.sku }}</td>
+            <td>{{ l.nombre }}</td>
+            <td class="data-table__num num">{{ l.pedida }}</td>
+            <td class="data-table__num num">{{ l.hecha }}</td>
+            <td class="data-table__muted">
+              @for (s of l.sugerencias; track s.ubicacion + s.lote) {
+                <span class="num">{{ s.ubicacion }}{{ s.lote ? ' [' + s.lote + ']' : '' }} ({{ s.cantidad }})</span>&nbsp;
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (d.estado === 'PENDIENTE' || d.estado === 'EN_PROCESO') {
+      <div class="acciones">
+        <button type="button" class="btn btn--ghost" (click)="accion(d, 'cancelar')">Cancelar pedido</button>
+        <button type="button" class="btn btn--primary" (click)="accion(d, 'completar')">Cerrar pedido</button>
+      </div>
+    }
+  </app-modal>
+}
+
+@if (creando()) {
+  <app-modal titulo="Nuevo pedido" (cerrar)="creando.set(false)">
+    <form class="form" (submit)="$event.preventDefault(); crear()">
+      <div class="fila">
+        <div class="field">
+          <label class="field__label" for="tipo">Tipo</label>
+          <select id="tipo" class="field__control" [value]="nuevoTipo()" (change)="nuevoTipo.set($any($event.target).value)">
+            <option value="COMPRA">Compra (recepción)</option>
+            <option value="VENTA">Venta (picking)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="numero">Número</label>
+          <input id="numero" class="field__control num" type="text" placeholder="OC-000123"
+                 [value]="numero()" (input)="numero.set($any($event.target).value)" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="field__label" for="parte">{{ nuevoTipo() === 'COMPRA' ? 'Proveedor' : 'Cliente' }}</label>
+        <input id="parte" class="field__control" type="text" [value]="contraparte()" (input)="contraparte.set($any($event.target).value)" />
+      </div>
+      @for (l of lineas(); track $index; let i = $index) {
+        <div class="linea">
+          <div class="field">
+            <label class="field__label">SKU o código</label>
+            <input class="field__control num" type="text" [value]="l.codigo" (input)="editarLinea(i, { codigo: $any($event.target).value })" />
+          </div>
+          <div class="field">
+            <label class="field__label">Cantidad</label>
+            <input class="field__control num" type="number" min="1" [value]="l.cantidad"
+                   (input)="editarLinea(i, { cantidad: +$any($event.target).value })" />
+          </div>
+          <button type="button" class="btn btn--ghost" (click)="quitarLinea(i)" [disabled]="lineas().length === 1">Quitar</button>
+        </div>
+      }
+      <button type="button" class="btn btn--ghost" (click)="agregarLinea()">+ Agregar línea</button>
+      <div class="field">
+        <label class="field__label" for="nota">Nota</label>
+        <input id="nota" class="field__control" type="text" [value]="nota()" (input)="nota.set($any($event.target).value)" />
+      </div>
+      @if (error()) { <p class="field__error">{{ error() }}</p> }
+      <div class="acciones">
+        <button type="button" class="btn btn--ghost" (click)="creando.set(false)">Cancelar</button>
+        <button type="submit" class="btn btn--primary" [disabled]="!puedeCrear">Crear pedido</button>
+      </div>
+    </form>
+  </app-modal>
+}

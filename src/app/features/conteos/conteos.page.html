@@ -1,0 +1,112 @@
+<header class="page-header">
+  <div>
+    <h1 class="page-header__titulo">Conteos cíclicos</h1>
+    <p class="page-header__sub">Los operarios cuentan con la terminal; acá se revisan las diferencias y se aplican al stock.</p>
+  </div>
+  <button type="button" class="btn btn--primary" (click)="creando.set(true)">Programar conteo</button>
+</header>
+
+<div class="toolbar">
+  <label class="field__label">
+    <input type="checkbox" [checked]="!abiertos()" (change)="abiertos.set(!$any($event.target).checked); cargar()" />
+    Ver también aplicados y cancelados
+  </label>
+</div>
+
+@if (conteos().length === 0) {
+  <p class="table-estado">No hay conteos pendientes.</p>
+} @else {
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>#</th><th>Ubicación</th><th>Estado</th><th class="data-table__num">Contadas</th><th class="data-table__num">Con diferencia</th><th>Abierto por</th><th class="data-table__actions"></th></tr>
+      </thead>
+      <tbody>
+        @for (c of conteos(); track c.id) {
+          <tr>
+            <td class="num">{{ c.id }}</td>
+            <td class="data-table__mono">{{ c.ubicacion || 'libre' }}</td>
+            <td><app-stamp [texto]="c.estado" [tono]="tono(c.estado)" /></td>
+            <td class="data-table__num num">{{ c.lineasContadas }} / {{ c.lineasTotales }}</td>
+            <td class="data-table__num num">{{ c.lineasConDiferencia ?? '—' }}</td>
+            <td class="data-table__muted">{{ c.creadoPorNombre }} · {{ fecha(c.creadoEn) }}</td>
+            <td class="data-table__actions">
+              <button type="button" class="btn btn--ghost data-table__action" (click)="verDetalle(c)">Revisar</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+@if (detalle(); as d) {
+  <app-modal [titulo]="'Conteo #' + d.id + ' · ' + (d.ubicacion || 'libre')" (cerrar)="detalle.set(null)">
+    <p class="data-table__muted">
+      {{ d.lineasContadas }} de {{ d.lineasTotales }} líneas contadas ·
+      diferencia total <strong class="num">{{ d.unidadesDiferencia ?? 0 }}</strong> unidades
+      @if (d.ubicacion) { · lo no contado se toma como 0 }
+    </p>
+    <table class="data-table">
+      <thead><tr><th>SKU</th><th>Producto</th><th>Lote</th><th class="data-table__num">Esperado</th><th class="data-table__num">Contado</th><th class="data-table__num">Dif.</th></tr></thead>
+      <tbody>
+        @for (l of d.lineas; track l.id) {
+          <tr>
+            <td class="data-table__mono num">{{ l.sku }}</td>
+            <td>{{ l.nombre }}</td>
+            <td class="num">{{ l.lote || '—' }}</td>
+            <td class="data-table__num num">{{ l.esperado ?? '—' }}</td>
+            <td class="data-table__num num">{{ l.contado ?? '—' }}</td>
+            <td class="data-table__num num" [class.dif--neg]="(l.diferencia ?? 0) < 0" [class.dif--pos]="(l.diferencia ?? 0) > 0">
+              {{ l.diferencia ?? '—' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (d.estado === 'ABIERTO' || d.estado === 'CERRADO') {
+      <div class="acciones">
+        <button type="button" class="btn btn--ghost" (click)="accion(d, 'cancelar')">Cancelar conteo</button>
+        @if (d.estado === 'CERRADO') {
+          <button type="button" class="btn btn--ghost" (click)="accion(d, 'reabrir')">Pedir recuento</button>
+        }
+        <button type="button" class="btn btn--primary" (click)="aplicando.set(d)">Aplicar diferencias</button>
+      </div>
+    }
+  </app-modal>
+}
+
+@if (aplicando(); as d) {
+  <app-confirm-dialog
+    titulo="Aplicar conteo"
+    [mensaje]="'El stock pasará a ser lo contado (' + (d.lineasConDiferencia ?? 0) + ' líneas con diferencia). Queda registrado en el historial como CONTEO-' + d.id + '.'"
+    textoConfirmar="Aplicar"
+    [peligroso]="true"
+    (confirmar)="accion(d, 'aplicar')"
+    (cancelar)="aplicando.set(null)"
+  />
+}
+
+@if (creando()) {
+  <app-modal titulo="Programar conteo" ancho="angosto" (cerrar)="creando.set(false)">
+    <form class="form" (submit)="$event.preventDefault(); crear()">
+      <div class="field">
+        <label class="field__label" for="ubic">Ubicación (vacío = conteo libre)</label>
+        <input id="ubic" class="field__control num" type="text" placeholder="A-01-03"
+               [value]="ubicacion()" (input)="ubicacion.set($any($event.target).value)" />
+      </div>
+      <label class="field__label">
+        <input type="checkbox" [checked]="ciego()" (change)="ciego.set($any($event.target).checked)" />
+        Conteo ciego (el operario no ve lo esperado)
+      </label>
+      <div class="field">
+        <label class="field__label" for="nota">Nota</label>
+        <input id="nota" class="field__control" type="text" [value]="nota()" (input)="nota.set($any($event.target).value)" />
+      </div>
+      <div class="acciones">
+        <button type="button" class="btn btn--ghost" (click)="creando.set(false)">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Abrir conteo</button>
+      </div>
+    </form>
+  </app-modal>
+}

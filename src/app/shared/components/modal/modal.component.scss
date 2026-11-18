@@ -1,0 +1,51 @@
+@keyframes sheet-in {
+  from {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.modal-sheet {
+  width: 100%;
+  max-width: 520px;
+  animation: sheet-in 0.14s ease-out;
+  box-shadow: var(--shadow-lg);
+
+  &--angosto {
+    max-width: 380px;
+  }
+}
+
+.modal-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-sheet__titulo {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal-sheet__body {
+  padding: var(--space-5);
+}

@@ -1,0 +1,15 @@
+# Frontend only. The backend (RF-Inventario-Web-Panel-Back) is dockerized
+# separately and reachable from the browser at http://localhost:8082/.
+#
+# The panel is published on host port 4200 on purpose: the browser origin
+# then matches the http://localhost:4200 entry the backend already allows
+# in its CORS config.
+
+services:
+  panel:
+    build: .
+    image: rf-inventario-panel:latest
+    container_name: rf-inventario-panel
+    ports:
+      - "4200:8080"
+    restart: unless-stopped

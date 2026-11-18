@@ -1,0 +1,32 @@
+<app-modal titulo="Resetear PIN" ancho="angosto" (cerrar)="cerrar.emit()">
+  <form class="pin-reset" (submit)="$event.preventDefault(); confirmar()">
+    <p class="pin-reset__quien">
+      {{ operario().nombre }} <span class="pin-reset__codigo num">({{ operario().codigo }})</span>
+    </p>
+
+    <div class="field">
+      <label class="field__label" for="pin-nuevo">Nuevo PIN</label>
+      <input
+        id="pin-nuevo"
+        class="field__control num"
+        type="text"
+        inputmode="numeric"
+        placeholder="••••"
+        [value]="pin()"
+        (input)="onPin($any($event.target).value)"
+        autofocus
+      />
+    </div>
+
+    @if (error()) {
+      <p class="field__error">{{ error() }}</p>
+    }
+
+    <div class="pin-reset__acciones">
+      <button type="button" class="btn btn--ghost" (click)="cerrar.emit()">Cancelar</button>
+      <button type="submit" class="btn btn--primary" [disabled]="pin().length < 3 || guardando()">
+        {{ guardando() ? 'Guardando…' : 'Resetear' }}
+      </button>
+    </div>
+  </form>
+</app-modal>
